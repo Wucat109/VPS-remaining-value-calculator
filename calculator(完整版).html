@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>统一计算器 (最终修复版)</title>
+    <title>统一计算器 (最终对齐版)</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -200,26 +200,7 @@
             transform: scale(0); animation: ripple-effect 0.6s linear;
         }
         @keyframes ripple-effect { to { transform: scale(4); opacity: 0; } }
-        @media (max-width: 820px) {
-            .unified-calculator-container {
-                padding: 20px 10px;
-            }
-            .calculator-columns-wrapper { flex-direction: column; }
-            .calculator-column { padding: 20px; }
-            #currency-converter-column {
-                border-left: none;
-                border-top: 1px solid var(--separator-color);
-                margin-top: 20px;
-                padding-top: 40px;
-            }
-            .results-snapshot-area { flex-direction: column; padding: 0; background-color: transparent; }
-            .result-display { margin: 10px 0; }
-        }
-        .swap-group {
-            display: flex;
-            justify-content: center;
-            margin: -2px auto 15px auto; 
-        }
+        
         #swap-currency-btn {
             width: auto;
             padding: 5px 10px;
@@ -236,10 +217,41 @@
             color: var(--button-text-color);
             transform: scale(1.1);
         }
-        .spacer {
-            height: 30px; 
-            margin: -2px 0 15px 0; 
+
+        /* === 【关键修改】 === */
+        /* 1. 为对齐目的，创建一个新的公共样式类 */
+        .form-row-spacer {
+            height: 47px; /* 与输入框行同高 */
+            margin-bottom: 25px; /* 与输入框行同边距 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        /* 2. 移除旧的、不一致的样式 */
+        .spacer {
+            /* 旧样式被 .form-row-spacer 替代 */
+        }
+        .swap-group {
+             /* 旧样式被 .form-row-spacer 替代 */
+        }
+        /* === 【修改结束】 === */
+
+        @media (max-width: 820px) {
+            .unified-calculator-container {
+                padding: 20px 10px;
+            }
+            .calculator-columns-wrapper { flex-direction: column; }
+            .calculator-column { padding: 20px; }
+            #currency-converter-column {
+                border-left: none;
+                border-top: 1px solid var(--separator-color);
+                margin-top: 20px;
+                padding-top: 40px;
+            }
+            .results-snapshot-area { flex-direction: column; padding: 0; background-color: transparent; }
+            .result-display { margin: 10px 0; }
+        }
+
     </style>
 </head>
 <body>
@@ -273,7 +285,7 @@
                                 <option value="monthly">月付</option>
                             </select>
                         </div>
-                        <div class="spacer"></div>
+                        <div class="spacer form-row-spacer"></div>
                         <div class="input-group">
                             <label for="expiry-date">到期日期</label>
                             <input type="date" id="expiry-date" required="">
@@ -297,7 +309,7 @@
                                 <option>加载中...</option>
                             </select>
                         </div>
-                        <div class="swap-group">
+                        <div class="swap-group form-row-spacer">
                             <button id="swap-currency-btn" title="交换货币">⇆</button>
                         </div>
                         <div class="input-group">
@@ -415,7 +427,6 @@
             const toCurrencySelect = document.getElementById('to-currency');
             const currencySymbols = { "USD": "$", "CNY": "¥", "EUR": "€", "JPY": "¥", "GBP": "£", "AUD": "A$", "CAD": "C$", "CHF": "Fr", "HKD": "HK$", "SGD": "S$", "KRW": "₩", "THB": "฿", "TWD": "NT$", "PHP": "₱", "IDR": "Rp", "MYR": "RM", "VND": "₫", "RUB": "₽", "BRL": "R$", "INR": "₹", "NGN": "₦", "TRY": "₺" };
             const currencyTranslations = { "USD": "美元", "CNY": "人民币", "EUR": "欧元", "JPY": "日元", "GBP": "英镑", "AUD": "澳元", "CAD": "加元", "CHF": "瑞士法郎", "HKD": "港币", "SGD": "新加坡元", "KRW": "韩元", "THB": "泰铢", "TWD": "新台币", "PHP": "菲律宾比索", "IDR": "印尼盾", "MYR": "马来西亚林吉特", "VND": "越南盾", "RUB": "俄罗斯卢布", "BRL": "巴西雷亚尔", "INR": "印度卢比", "NGN": "尼日利亚奈拉", "TRY": "土耳其里拉" };
-            
             // --- [重要] 使用说明 ---
             // 为了使汇率换算功能生效，需要一个免费的API Key。
             // 1. 请访问 https://www.exchangerate-api.com/
@@ -575,5 +586,4 @@
     </script>
 
 </body>
-
 </html>
