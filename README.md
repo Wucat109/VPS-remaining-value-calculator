@@ -1,7 +1,7 @@
 # vps剩余价值计算器
 计算虚拟服务器的剩余价值，以及汇率换算
 
-需要自己申请api填入具体位置才能正常运行，具体可以在 jisuan.html 474行起看
+需要自己申请api填入具体位置才能正常运行，具体可以在 `calculator(简洁版).html 474行` 或 `calculator(完整版).html 419行` 起看
 
             // 为了使汇率换算功能生效，需要一个免费的API Key。
             // 1. 请访问 https://www.exchangerate-api.com/
@@ -10,7 +10,7 @@
             const apiKey = '请在这里粘贴您从 ExchangeRate-API.com 获取的免费API Key'; // <-需要修改这里
 
 
-参考
+
 系统截图效果
 
 <img src="https://cdn.nodeimage.com/i/Q6hsgmFSljI7E2gY9XXLtLEfl0ayOJpS.webp" alt="Q6hsgmFSljI7E2gY9XXLtLEfl0ayOJpS.webp">
@@ -18,3 +18,9 @@
 “复制为图片”效果（无框简洁版）
 
 <img src="https://cdn.nodeimage.com/i/Oiq1FERAtqm8E7L8OJwQupcRVFj0Dau2.webp" alt="Oiq1FERAtqm8E7L8OJwQupcRVFj0Dau2.webp">
+
+“复制为图片”效果（完整版）
+
+<img src="https://cdn.nodeimage.com/i/99O0ZngwRbHyIqtQ8GhDKScXYjXW7jIE.webp" alt="99O0ZngwRbHyIqtQ8GhDKScXYjXW7jIE.webp">
+
+
