@@ -415,7 +415,13 @@
             const toCurrencySelect = document.getElementById('to-currency');
             const currencySymbols = { "USD": "$", "CNY": "¥", "EUR": "€", "JPY": "¥", "GBP": "£", "AUD": "A$", "CAD": "C$", "CHF": "Fr", "HKD": "HK$", "SGD": "S$", "KRW": "₩", "THB": "฿", "TWD": "NT$", "PHP": "₱", "IDR": "Rp", "MYR": "RM", "VND": "₫", "RUB": "₽", "BRL": "R$", "INR": "₹", "NGN": "₦", "TRY": "₺" };
             const currencyTranslations = { "USD": "美元", "CNY": "人民币", "EUR": "欧元", "JPY": "日元", "GBP": "英镑", "AUD": "澳元", "CAD": "加元", "CHF": "瑞士法郎", "HKD": "港币", "SGD": "新加坡元", "KRW": "韩元", "THB": "泰铢", "TWD": "新台币", "PHP": "菲律宾比索", "IDR": "印尼盾", "MYR": "马来西亚林吉特", "VND": "越南盾", "RUB": "俄罗斯卢布", "BRL": "巴西雷亚尔", "INR": "印度卢比", "NGN": "尼日利亚奈拉", "TRY": "土耳其里拉" };
-            const apiKey = '6184389a93ac1b0b9897190f';
+            
+            // --- [重要] 使用说明 ---
+            // 为了使汇率换算功能生效，需要一个免费的API Key。
+            // 1. 请访问 https://www.exchangerate-api.com/
+            // 2. 注册一个免费账户 (Free Plan)
+            // 3. 将您获取到的API Key粘贴到下方的引号内。
+            const apiKey = '请在这里粘贴您从 ExchangeRate-API.com 获取的免费API Key';
             const apiUrl = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`;
             let conversionRates = {};
             async function fetchAndPopulateRates() {
@@ -569,4 +575,5 @@
     </script>
 
 </body>
+
 </html>
