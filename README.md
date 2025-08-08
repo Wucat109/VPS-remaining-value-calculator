@@ -10,5 +10,11 @@
             const apiKey = '请在这里粘贴您从 ExchangeRate-API.com 获取的免费API Key'; // <-需要修改这里
 
 
-参考效果
-<img src="https://cdn.nodeimage.com/i/6xqF5MRGxtxQ6OLtsZrLOlGlpyA9glb0.webp" alt="6xqF5MRGxtxQ6OLtsZrLOlGlpyA9glb0.webp">
+参考
+系统截图效果
+
+<img src="https://cdn.nodeimage.com/i/Q6hsgmFSljI7E2gY9XXLtLEfl0ayOJpS.webp" alt="Q6hsgmFSljI7E2gY9XXLtLEfl0ayOJpS.webp">
+
+“复制为图片”效果（无框简洁版）
+
+<img src="https://cdn.nodeimage.com/i/Oiq1FERAtqm8E7L8OJwQupcRVFj0Dau2.webp" alt="Oiq1FERAtqm8E7L8OJwQupcRVFj0Dau2.webp">
