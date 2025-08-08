@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>统一计算器 (最终修复版)</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* 主题适应性调整 */
+        .catalog-container { display: none !important; }
+        .max-w-\[1020px\] { max-width: 100% !important; }
+        /* 全局样式变量 */
+        :root {
+            --button-pink-bg: #FFDDEE;
+            --button-pink-hover-bg: #FFC2DD;
+            --button-text-color: #581845;
+            --card-shadow: 0 12px 35px rgba(90, 100, 120, 0.12);
+            --card-shadow-hover: 0 16px 40px rgba(90, 100, 120, 0.18);
+            --input-focus-glow: 0 0 0 3px rgba(255, 221, 238, 0.7);
+            --separator-color: #e9ecef;
+            --monospace-font: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+        }
+
+        .unified-calculator-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            background: linear-gradient(to top right, #fdfbfb, #ebedee);
+            box-sizing: border-box;
+            min-height: 100vh;
+        }
+        .calculator.unified-card {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 900px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease-in-out;
+        }
+        .calculator.unified-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-shadow-hover);
+        }
+        .calculator-columns-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .calculator-column {
+            flex: 1;
+            min-width: 320px;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .calculator-column .calculator-content {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        #currency-converter-column { border-left: 1px solid var(--separator-color); }
+        
+        .calculator h1 {
+            color: #1d2129;
+            margin-top: 0;
+            margin-bottom: 35px;
+            font-weight: 800;
+            font-size: 22px;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-group { margin-bottom: 25px; text-align: left; }
+        .price-group { display: flex; gap: 10px; }
+        .price-group .price-input { flex-grow: 1; }
+        
+        .calculator label { display: block; margin-bottom: 10px; color: #495057; font-weight: 500; }
+        .calculator input, .calculator select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            font-family: inherit;
+            background-color: #f8f9fa;
+            height: 47px; 
+        }
+        
+        .calculator select#from-currency, .calculator select#to-currency {
+            font-family: var(--monospace-font);
+        }
+        .calculator input:focus, .calculator select:focus {
+            outline: none;
+            border-color: var(--button-pink-bg);
+            background-color: #fff;
+            box-shadow: var(--input-focus-glow);
+        }
+        
+        .calculator button {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding: 14px;
+            background-color: var(--button-pink-bg);
+            color: var(--button-text-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 0;
+        }
+        .calculator button:hover {
+            background-color: var(--button-pink-hover-bg);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.15);
+        }
+        .calculator button:disabled {
+            background-color: #e9ecef;
+            color: #adb5bd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .calculator button.info-button {
+          background-color: #f8f9fa;
+          color: #6c757d;
+          cursor: default;
+          font-weight: 500;
+          box-shadow: none;
+        }
+        .calculator button.info-button:hover {
+          transform: none;
+          box-shadow: none;
+          background-color: #f8f9fa;
+        }
+        .results-snapshot-area {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+            margin-top: 25px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .result-display {
+            flex: 1;
+            min-width: 300px;
+            margin: 10px;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            color: #28a745;
+            font-weight: 500;
+            white-space: normal;
+            transition: all 0.3s ease;
+            min-height: 145px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        #conversion-result { color: #007bff; font-size: 1.2em;}
+        
+        .calculator-footer {
+            margin-top: auto;
+            padding-top: 10px;
+        }
+        
+        .unified-footer {
+            width: 100%;
+            margin-top: 30px;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        .ripple {
+            position: absolute; border-radius: 50%; background-color: rgba(0, 0, 0, 0.1);
+            transform: scale(0); animation: ripple-effect 0.6s linear;
+        }
+        @keyframes ripple-effect { to { transform: scale(4); opacity: 0; } }
+        @media (max-width: 820px) {
+            .unified-calculator-container {
+                padding: 20px 10px;
+            }
+            .calculator-columns-wrapper { flex-direction: column; }
+            .calculator-column { padding: 20px; }
+            #currency-converter-column {
+                border-left: none;
+                border-top: 1px solid var(--separator-color);
+                margin-top: 20px;
+                padding-top: 40px;
+            }
+            .results-snapshot-area { flex-direction: column; padding: 0; background-color: transparent; }
+            .result-display { margin: 10px 0; }
+        }
+        .swap-group {
+            display: flex;
+            justify-content: center;
+            margin: -2px auto 15px auto; 
+        }
+        #swap-currency-btn {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 20px;
+            background-color: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        #swap-currency-btn:hover {
+            background-color: var(--button-pink-bg);
+            color: var(--button-text-color);
+            transform: scale(1.1);
+        }
+        .spacer {
+            height: 30px; 
+            margin: -2px 0 15px 0; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="unified-calculator-container">
+        <div class="calculator unified-card">
+            <div class="calculator-columns-wrapper">
+                <div class="calculator-column" id="vps-calculator-column">
+                    <div class="calculator-content">
+                        <h1><span style="font-size: 24px; vertical-align: middle; margin-right: 8px;">🏞️</span> VPS剩余价值</h1>
+                        <div class="input-group">
+                            <label for="renewal-price">续费价格</label>
+                            <div class="price-group">
+                                <div class="price-input">
+                                    <input type="number" id="renewal-price" placeholder="例如: 36" required="">
+                                </div>
+                                <select id="currency-unit">
+                                    <option value="USD">美元 (USD)</option>
+                                    <option value="CNY">人民币 (CNY)</option>
+                                    <option value="EUR">欧元 (EUR)</option>
+                                    <option value="JPY">日元 (JPY)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="payment-cycle">付费周期</label>
+                            <select id="payment-cycle">
+                                <option value="annually">年付</option>
+                                <option value="semi-annually">半年付</option>
+                                <option value="quarterly">季付</option>
+                                <option value="monthly">月付</option>
+                            </select>
+                        </div>
+                        <div class="spacer"></div>
+                        <div class="input-group">
+                            <label for="expiry-date">到期日期</label>
+                            <input type="date" id="expiry-date" required="">
+                        </div>
+                        
+                        <div class="calculator-footer">
+                            <button id="calculate-btn">计算价值</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="calculator-column" id="currency-converter-column">
+                    <div class="calculator-content">
+                        <h1><span style="font-size: 24px; vertical-align: middle; margin-right: 8px;">💹</span> 实时汇率换算</h1>
+                        <div class="input-group">
+                            <label for="amount-to-convert">金额</label>
+                            <input type="number" id="amount-to-convert" placeholder="输入金额" value="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="from-currency">从</label>
+                            <select id="from-currency">
+                                <option>加载中...</option>
+                            </select>
+                        </div>
+                        <div class="swap-group">
+                            <button id="swap-currency-btn" title="交换货币">⇆</button>
+                        </div>
+                        <div class="input-group">
+                            <label for="to-currency">到</label>
+                            <select id="to-currency">
+                                <option>加载中...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="calculator-footer">
+                            <button id="convert-btn" class="info-button">自动换算</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-snapshot-area" id="results-snapshot-area">
+                <div id="result" class="result-display"></div>
+                <div id="conversion-result" class="result-display"></div>
+            </div>
+            <div class="unified-footer">
+                <button id="copy-image-btn" disabled="">📸 复制为图片</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // SECTION 0: Get references to elements
+        const copyImageBtn = document.getElementById('copy-image-btn');
+        const calculatorCard = document.querySelector('.calculator.unified-card');
+        const unifiedFooter = document.querySelector('.unified-footer');
+        const swapBtn = document.getElementById('swap-currency-btn');
+
+        // SECTION 1: VPS Calculator Logic (No changes)
+        const calculateBtn = document.getElementById('calculate-btn');
+        if(calculateBtn) {
+            const resultDiv = document.getElementById('result');
+            const conversionResultDiv = document.getElementById('conversion-result');
+            const renewalPriceInput = document.getElementById('renewal-price');
+            const paymentCycleSelect = document.getElementById('payment-cycle');
+            const expiryDateInput = document.getElementById('expiry-date');
+            const currencyUnitSelect = document.getElementById('currency-unit');
+            calculateBtn.addEventListener('click', function(event) {
+                const button = event.currentTarget;
+                const circle = document.createElement('span');
+                const diameter = Math.max(button.clientWidth, button.clientHeight);
+                const radius = diameter / 2;
+                circle.style.width = circle.style.height = `${diameter}px`;
+                circle.style.left = `${event.clientX - button.offsetLeft - radius}px`;
+                circle.style.top = `${event.clientY - button.offsetTop - radius}px`;
+                circle.classList.add('ripple');
+                const ripple = button.getElementsByClassName('ripple')[0];
+                if (ripple) { ripple.remove(); }
+                button.appendChild(circle);
+                const renewalPrice = parseFloat(renewalPriceInput.value);
+                const paymentCycle = paymentCycleSelect.value;
+                const expiryDate = new Date(expiryDateInput.value);
+                const currencyUnit = currencyUnitSelect.value;
+                copyImageBtn.disabled = true;
+                if (isNaN(renewalPrice) || !expiryDateInput.value) {
+                    resultDiv.style.color = '#dc3545';
+                    resultDiv.innerHTML = '<span>请填写所有必填项！</span>';
+                    conversionResultDiv.innerHTML = '';
+                    return;
+                }
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                expiryDate.setHours(0, 0, 0, 0);
+                if (expiryDate <= today) {
+                    resultDiv.style.color = '#ffc107';
+                    resultDiv.innerHTML = '<span>该服务已到期或今天到期，无剩余价值。</span>';
+                    conversionResultDiv.innerHTML = '';
+                    return;
+                }
+                const diffTime = expiryDate - today;
+                const remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                let daysInCycle;
+                switch (paymentCycle) {
+                    case 'annually': daysInCycle = 365.25; break;
+                    case 'semi-annually': daysInCycle = 182.62; break;
+                    case 'quarterly': daysInCycle = 91.31; break;
+                    case 'monthly': daysInCycle = 30.44; break;
+                    default: daysInCycle = 365.25;
+                }
+                const pricePerDay = renewalPrice / daysInCycle;
+                const remainingValue = (pricePerDay * remainingDays);
+                resultDiv.style.color = '#28a745';
+                resultDiv.innerHTML = `
+                    <div><span style="display: block; font-size: 0.9em; opacity: 0.8;">剩余天数: ${remainingDays} 天</span></div>
+                    <div style="width: 80%; margin: 10px auto; border-top: 1px solid #e0e0e0;"></div>
+                    <div><span style="display: block; font-size: 1em; font-weight: 500;">预估剩余价值</span>
+                        <strong style="font-size: 2.2em; line-height: 1.3; color: #1a7431;">${remainingValue.toFixed(2)}
+                            <span style="font-size: 0.5em; font-weight: 500; margin-left: 5px; vertical-align: middle;">${currencyUnit}</span>
+                        </strong>
+                    </div>`;
+                const amountToConvertInput = document.getElementById('amount-to-convert');
+                const fromCurrencySelect = document.getElementById('from-currency');
+                if (amountToConvertInput && fromCurrencySelect) {
+                    amountToConvertInput.value = remainingValue.toFixed(2);
+                    fromCurrencySelect.value = currencyUnit;
+                    amountToConvertInput.dispatchEvent(new Event('input'));
+                }
+                copyImageBtn.disabled = false;
+            });
+        }
+
+        // SECTION 2: Currency Converter Logic (No changes)
+        const converter = document.getElementById('currency-converter-column');
+        if(converter) {
+            const conversionResultDiv = document.getElementById('conversion-result');
+            const amountInput = document.getElementById('amount-to-convert');
+            const fromCurrencySelect = document.getElementById('from-currency');
+            const toCurrencySelect = document.getElementById('to-currency');
+            const currencySymbols = { "USD": "$", "CNY": "¥", "EUR": "€", "JPY": "¥", "GBP": "£", "AUD": "A$", "CAD": "C$", "CHF": "Fr", "HKD": "HK$", "SGD": "S$", "KRW": "₩", "THB": "฿", "TWD": "NT$", "PHP": "₱", "IDR": "Rp", "MYR": "RM", "VND": "₫", "RUB": "₽", "BRL": "R$", "INR": "₹", "NGN": "₦", "TRY": "₺" };
+            const currencyTranslations = { "USD": "美元", "CNY": "人民币", "EUR": "欧元", "JPY": "日元", "GBP": "英镑", "AUD": "澳元", "CAD": "加元", "CHF": "瑞士法郎", "HKD": "港币", "SGD": "新加坡元", "KRW": "韩元", "THB": "泰铢", "TWD": "新台币", "PHP": "菲律宾比索", "IDR": "印尼盾", "MYR": "马来西亚林吉特", "VND": "越南盾", "RUB": "俄罗斯卢布", "BRL": "巴西雷亚尔", "INR": "印度卢比", "NGN": "尼日利亚奈拉", "TRY": "土耳其里拉" };
+            const apiKey = '6184389a93ac1b0b9897190f';
+            const apiUrl = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`;
+            let conversionRates = {};
+            async function fetchAndPopulateRates() {
+                try {
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) throw new Error('网络响应错误');
+                    const data = await response.json();
+                    if (data.result === 'success') {
+                        conversionRates = data.conversion_rates;
+                        fromCurrencySelect.innerHTML = ''; toCurrencySelect.innerHTML = '';
+                        const nbsp = '\u00A0';
+                        for (const currency of Object.keys(currencySymbols)) {
+                            if (conversionRates.hasOwnProperty(currency) && currencyTranslations.hasOwnProperty(currency)) {
+                                const symbol = currencySymbols[currency]; const chineseName = currencyTranslations[currency];
+                                let symbolPart = symbol.padEnd(4, nbsp); let codePart = currency;
+                                const displayName = `${symbolPart}${codePart} - ${chineseName}`;
+                                const option1 = new Option(displayName, currency); const option2 = new Option(displayName, currency);
+                                fromCurrencySelect.add(option1); toCurrencySelect.add(option2);
+                            }
+                        }
+                        fromCurrencySelect.value = 'USD'; toCurrencySelect.value = 'CNY'; performConversion();
+                    } else { throw new Error('API请求失败: ' + data['error-type']); }
+                } catch (error) { conversionResultDiv.innerHTML = '<span>无法加载汇率数据...</span>'; console.error("汇率获取失败:", error); }
+            }
+            function performConversion() {
+                if (!amountInput.value) { conversionResultDiv.innerHTML = ''; return; }
+                const amount = parseFloat(amountInput.value);
+                const fromCurrency = fromCurrencySelect.value; const toCurrency = toCurrencySelect.value;
+                if (isNaN(amount) || !fromCurrency || !toCurrency || Object.keys(conversionRates).length === 0) { return; }
+                const rateFrom = conversionRates[fromCurrency]; const rateTo = conversionRates[toCurrency];
+                const convertedAmount = (amount / rateFrom) * rateTo;
+                const exchangeRate = (rateTo / rateFrom).toFixed(4);
+                conversionResultDiv.innerHTML = `
+                    ${amount.toLocaleString()} ${fromCurrency} =
+                    <strong style="font-size: 1.2em;">${convertedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} ${toCurrency}</strong>
+                    <div style="font-size: 0.8em; opacity: 0.7; margin-top: 10px;">当前汇率: 1 ${fromCurrency} ≈ ${exchangeRate} ${toCurrency}</div>`;
+            }
+            amountInput.addEventListener('input', performConversion);
+            fromCurrencySelect.addEventListener('change', performConversion);
+            toCurrencySelect.addEventListener('change', performConversion);
+            if (swapBtn) {
+                swapBtn.addEventListener('click', () => {
+                    const temp = fromCurrencySelect.value;
+                    fromCurrencySelect.value = toCurrencySelect.value;
+                    toCurrencySelect.value = temp;
+                    performConversion();
+                });
+            }
+            fetchAndPopulateRates();
+        }
+        
+        // SECTION 3: Copy as Image Logic (FINAL FIX)
+        if(copyImageBtn && calculatorCard && unifiedFooter) {
+            copyImageBtn.addEventListener('click', () => {
+                if (typeof html2canvas === 'undefined') {
+                    alert('截图库加载失败，请检查网络连接或刷新页面。');
+                    return;
+                }
+                
+                const originalText = copyImageBtn.innerHTML;
+                copyImageBtn.innerHTML = '正在生成...';
+                copyImageBtn.disabled = true;
+                
+                unifiedFooter.style.display = 'none';
+                if (swapBtn) { swapBtn.style.display = 'none'; } 
+                
+                html2canvas(calculatorCard, {
+                    backgroundColor: null,
+                    useCORS: true,
+                    scale: 2,
+                    logging: false,
+                    onclone: (clonedDoc) => {
+                        // 1. Remove focus to prevent capturing the cursor
+                        if (clonedDoc.activeElement) {
+                            clonedDoc.activeElement.blur();
+                        }
+
+                        // 2. Find all form elements to replace
+                        const elementsToReplace = clonedDoc.querySelectorAll('input, select');
+                        
+                        elementsToReplace.forEach(el => {
+                            const div = clonedDoc.createElement('div');
+                            const style = window.getComputedStyle(el);
+
+                            // 3. 【THE FIX】Meticulously copy all critical visual styles
+                            const propertiesToCopy = [
+                                'backgroundColor', 'border', 'borderRadius', 'boxSizing', 'color',
+                                'fontFamily', 'fontSize', 'fontWeight', 'height', 'letterSpacing',
+                                'lineHeight', 'padding', 'textAlign', 'verticalAlign', 'width'
+                            ];
+
+                            propertiesToCopy.forEach(prop => {
+                                div.style[prop] = style[prop];
+                            });
+
+                            // Ensure content is centered vertically
+                            div.style.display = 'flex';
+                            div.style.alignItems = 'center';
+
+                            // 4. Populate the div with the correct content
+                            if (el.tagName.toLowerCase() === 'select') {
+                                const selectedOption = el.options[el.selectedIndex];
+                                div.textContent = selectedOption ? selectedOption.text : '';
+                            } else {
+                                div.textContent = el.value || el.placeholder;
+                            }
+                            
+                            // 5. Replace the original element with the perfect replica
+                            el.parentNode.replaceChild(div, el);
+                        });
+                    }
+                }).then(canvas => {
+                    canvas.toBlob(function(blob) {
+                        if (!blob) {
+                            alert('无法生成图片Blob，请稍后重试。');
+                            return;
+                        }
+                        try {
+                            navigator.clipboard.write([ new ClipboardItem({ 'image/png': blob }) ])
+                            .then(() => {
+                                copyImageBtn.innerHTML = '✅ 复制成功!';
+                                setTimeout(() => { copyImageBtn.innerHTML = originalText; }, 2000);
+                            })
+                            .catch(err => {
+                                console.error('复制到剪贴板失败: ', err);
+                                alert('复制失败！您的浏览器可能不支持或未授权剪贴板操作。');
+                                copyImageBtn.innerHTML = originalText;
+                            });
+                        } catch (error) {
+                             console.error('剪贴板API出错: ', error);
+                             alert('复制功能出错！您的浏览器可能不支持此功能。');
+                             copyImageBtn.innerHTML = originalText;
+                        }
+                    }, 'image/png');
+                }).catch(err => {
+                    console.error('html2canvas 渲染失败: ', err);
+                    alert('截图渲染失败，请稍后重试。');
+                    copyImageBtn.innerHTML = originalText;
+                }).finally(() => {
+                    // Restore the UI
+                    unifiedFooter.style.display = 'block';
+                    if (swapBtn) { swapBtn.style.display = 'flex'; } 
+                    
+                    setTimeout(() => {
+                        copyImageBtn.disabled = false;
+                    }, 2000);
+                });
+            });
+        }
+    });
+    </script>
+
+</body>
+</html>
